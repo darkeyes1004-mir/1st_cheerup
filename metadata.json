@@ -1,0 +1,6 @@
+{
+  "name": "Cheer Up Band Manager",
+  "description": "쳐럽밴드 공연 일정, 선곡 목록, 유튜브 링크, 준비물 및 선곡 통계를 체계적으로 관리하는 밴드 멤버용 매니저 앱",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
