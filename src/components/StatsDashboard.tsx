@@ -6,7 +6,7 @@
 import { useState, useMemo } from 'react';
 import { GigEvent, Song } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
-import { BarChart2, Calendar, Award, Music, Percent, Layers } from 'lucide-react';
+import { BarChart2, Calendar, Award, Music, Percent, Layers, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface StatsDashboardProps {
   gigs: GigEvent[];
@@ -15,7 +15,11 @@ interface StatsDashboardProps {
 
 export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
   const years = useMemo(() => {
-    const list = gigs.map(g => new Date(g.date).getFullYear());
+    const list = gigs.map(g => {
+      if (!g.date) return 0;
+      const parts = g.date.split('-');
+      return parts[0] ? parseInt(parts[0], 10) : 0;
+    }).filter(Boolean);
     const unique = Array.from(new Set(list));
     return unique.sort((a, b) => b - a); // descending
   }, [gigs]);
@@ -24,11 +28,18 @@ export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
 
   const filteredGigs = useMemo(() => {
     if (selectedYear === 'ALL') return gigs;
-    return gigs.filter(g => new Date(g.date).getFullYear() === selectedYear);
+    return gigs.filter(g => {
+      if (!g.date) return false;
+      const parts = g.date.split('-');
+      const year = parts[0] ? parseInt(parts[0], 10) : 0;
+      return year === selectedYear;
+    });
   }, [gigs, selectedYear]);
 
-  // 1. TOP POPULAR SONGS RANKING
-  const topSongsData = useMemo(() => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // 1. TOP POPULAR SONGS RANKING (ALL PERFORMED)
+  const rankedSongs = useMemo(() => {
     const counts: { [songId: string]: number } = {};
     
     // Aggregate counts across filtered gigs
@@ -47,9 +58,12 @@ export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
         count: counts[song.id] || 0
       }))
       .filter(item => item.count > 0)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // TOP 10
+      .sort((a, b) => b.count - a.count);
   }, [filteredGigs, songs]);
+
+  const displayedSongs = useMemo(() => {
+    return isExpanded ? rankedSongs : rankedSongs.slice(0, 10);
+  }, [rankedSongs, isExpanded]);
 
   // 2. YEARLY STATS - Number of total song selections per year
   const yearlyStatsData = useMemo(() => {
@@ -57,7 +71,10 @@ export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
     const yearGigCounts: { [year: string]: number } = {};
 
     gigs.forEach(gig => {
-      const year = new Date(gig.date).getFullYear().toString();
+      if (!gig.date) return;
+      const parts = gig.date.split('-');
+      const year = parts[0] ? parts[0] : '';
+      if (!year) return;
       yearGigCounts[year] = (yearGigCounts[year] || 0) + 1;
       yearCounts[year] = (yearCounts[year] || 0) + gig.setlistSongIds.length;
     });
@@ -82,11 +99,15 @@ export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
     }));
 
     gigs.forEach(gig => {
-      const gigDate = new Date(gig.date);
-      if (selectedYear === 'ALL' || gigDate.getFullYear() === selectedYear) {
-        const monthIndex = gigDate.getMonth(); // 0 to 11
-        monthlyCounts[monthIndex]['선곡된 곡 수'] += gig.setlistSongIds.length;
-        monthlyCounts[monthIndex]['공연 일정 수'] += 1;
+      if (!gig.date) return;
+      const parts = gig.date.split('-');
+      const gigYear = parts[0] ? parseInt(parts[0], 10) : 0;
+      const gigMonth = parts[1] ? parseInt(parts[1], 10) - 1 : -1; // 0 to 11
+      if (selectedYear === 'ALL' || gigYear === selectedYear) {
+        if (gigMonth >= 0 && gigMonth < 12) {
+          monthlyCounts[gigMonth]['선곡된 곡 수'] += gig.setlistSongIds.length;
+          monthlyCounts[gigMonth]['공연 일정 수'] += 1;
+        }
       }
     });
 
@@ -332,36 +353,57 @@ export default function StatsDashboard({ gigs, songs }: StatsDashboardProps) {
           <div>
             <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-500" />
-              쳐럽밴드 베스트 선곡 곡 수 TOP 10 (Most Frequently Performed)
+              {isExpanded ? '쳐럽밴드 베스트 선곡 곡 수 전체 순위' : '쳐럽밴드 베스트 선곡 곡 수 TOP 10 (Most Frequently Performed)'}
             </h4>
             <p className="text-xs text-slate-500">공연 세트리스트에 가장 자주 포함된 명예의 밴드 커버 곡 목록입니다.</p>
           </div>
 
-          {topSongsData.length === 0 ? (
+          {rankedSongs.length === 0 ? (
             <p className="text-xs text-slate-400 italic text-center py-10">아직 합산할 공연 완료 선곡 데이터가 부족합니다.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topSongsData.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-black text-rose-500 text-sm w-6 text-center">
-                      #{index + 1}
-                    </span>
-                    <div>
-                      <h5 className="font-bold text-slate-950 text-xs">{item.title}</h5>
-                      <span className="text-[10px] text-slate-400">{item.artist}</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {displayedSongs.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/50 rounded-xl hover:border-slate-300 transition-all duration-200"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-black text-rose-500 text-sm w-6 text-center">
+                        #{index + 1}
+                      </span>
+                      <div>
+                        <h5 className="font-bold text-slate-950 text-xs">{item.title}</h5>
+                        <span className="text-[10px] text-slate-400">{item.artist}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs bg-amber-500/10 text-amber-700 font-extrabold px-2.5 py-1 rounded-full">
+                        {item.count}회 초이스
+                      </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs bg-amber-500/10 text-amber-700 font-extrabold px-2.5 py-1 rounded-full">
-                      {item.count}회 초이스
-                    </span>
-                  </div>
+                ))}
+              </div>
+
+              {rankedSongs.length > 10 && (
+                <div className="flex justify-center pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="flex items-center gap-1.5 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-xl text-xs transition-all duration-250 cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+                  >
+                    {isExpanded ? (
+                      <>
+                        접기 <ChevronUp className="w-3.5 h-3.5" />
+                      </>
+                    ) : (
+                      <>
+                        더보기 <ChevronDown className="w-3.5 h-3.5 animate-bounce" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

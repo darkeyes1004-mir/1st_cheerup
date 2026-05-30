@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { ChecklistItem, GigEvent } from '../types';
-import { ClipboardCheck, Plus, CheckSquare, Square, Trash2, Award, User, Tag, ShieldCheck } from 'lucide-react';
+import { ClipboardCheck, Plus, CheckSquare, Square, Trash2, Award, User, Tag, ShieldCheck, Edit2, Check, X } from 'lucide-react';
 
 interface ChecklistProps {
   checklists: ChecklistItem[];
@@ -13,9 +13,10 @@ interface ChecklistProps {
   onAddCheckItem: (item: Omit<ChecklistItem, 'id'>) => void;
   onToggleCheckItem: (id: string) => void;
   onDeleteCheckItem: (id: string) => void;
+  onEditCheckItem?: (id: string, updatedFields: Partial<ChecklistItem>) => void;
 }
 
-export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onToggleCheckItem, onDeleteCheckItem }: ChecklistProps) {
+export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onToggleCheckItem, onDeleteCheckItem, onEditCheckItem }: ChecklistProps) {
   const [selectedGigId, setSelectedGigId] = useState<string>(gigs.length > 0 ? gigs[0].id : 'all');
   const [activeCategory, setActiveCategory] = useState<'ALL' | ChecklistItem['category']>('ALL');
 
@@ -23,6 +24,27 @@ export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onT
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState<ChecklistItem['category']>('PERSONAL_INSTRUMENT');
   const [newItemAssignee, setNewItemAssignee] = useState('');
+
+  // Editing state
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemAssignee, setEditItemAssignee] = useState('');
+
+  const startEditing = (item: ChecklistItem) => {
+    setEditingItemId(item.id);
+    setEditItemName(item.name);
+    setEditItemAssignee(item.assignee || '');
+  };
+
+  const saveEditing = (id: string) => {
+    if (onEditCheckItem && editItemName.trim()) {
+      onEditCheckItem(id, {
+        name: editItemName.trim(),
+        assignee: editItemAssignee.trim() || '미지정'
+      });
+    }
+    setEditingItemId(null);
+  };
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,6 +250,7 @@ export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onT
             ) : (
               filteredItems.map(item => {
                 const gigName = gigs.find(g => g.id === item.gigId)?.title || '공용 일정';
+                const isItemEditing = editingItemId === item.id;
                 return (
                   <div
                     key={item.id}
@@ -236,13 +259,14 @@ export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onT
                       item.isCompleted ? 'border-emerald-100 bg-emerald-50/10' : 'border-slate-200/80 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 mr-2 min-w-0">
                       <button
                         id={`btn-toggle-chk-${item.id}`}
                         onClick={() => onToggleCheckItem(item.id)}
+                        disabled={isItemEditing}
                         className={`transition-colors p-0.5 rounded cursor-pointer ${
                           item.isCompleted ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
-                        }`}
+                        } ${isItemEditing ? 'opacity-30 cursor-not-allowed' : ''}`}
                       >
                         {item.isCompleted ? (
                           <CheckSquare className="w-5 h-5 fill-emerald-100" />
@@ -251,37 +275,86 @@ export default function ChecklistManager({ checklists, gigs, onAddCheckItem, onT
                         )}
                       </button>
                       
-                      <div>
-                        <span className={`text-xs font-semibold ${item.isCompleted ? 'line-through text-slate-400' : 'text-slate-900'}`}>
-                          {item.name}
-                        </span>
-                        
-                        {/* Meta lines */}
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md ${getCategoryTheme(item.category)}`}>
-                            {getCategoryLabel(item.category)}
-                          </span>
-                          <span className="text-[9px] bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
-                            <User className="w-2.5 h-2.5" />
-                            지정: {item.assignee || '미지정'}
-                          </span>
-                          {selectedGigId === 'all' && (
-                            <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded-md">
-                              공연: {gigName}
-                            </span>
-                          )}
+                      {isItemEditing ? (
+                        <div className="flex flex-col sm:flex-row gap-2 flex-1 min-w-0">
+                          <input
+                            type="text"
+                            value={editItemName}
+                            onChange={(e) => setEditItemName(e.target.value)}
+                            className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold focus:outline-none focus:bg-white flex-1 min-w-0"
+                            placeholder="준비물 이름"
+                          />
+                          <input
+                            type="text"
+                            value={editItemAssignee}
+                            onChange={(e) => setEditItemAssignee(e.target.value)}
+                            className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs focus:outline-none focus:bg-white w-full sm:w-32"
+                            placeholder="지정 멤버"
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="min-w-0 flex-1">
+                          <span className={`text-xs font-semibold block truncate ${item.isCompleted ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                            {item.name}
+                          </span>
+                          
+                          {/* Meta lines */}
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-md ${getCategoryTheme(item.category)}`}>
+                              {getCategoryLabel(item.category)}
+                            </span>
+                            <span className="text-[9px] bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
+                              <User className="w-2.5 h-2.5" />
+                              지정: {item.assignee || '미지정'}
+                            </span>
+                            {selectedGigId === 'all' && (
+                              <span className="text-[9px] bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded-md">
+                                공연: {gigName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <button
-                      id={`btn-delete-chk-${item.id}`}
-                      onClick={() => onDeleteCheckItem(item.id)}
-                      className="p-1 text-slate-300 hover:text-rose-500 rounded transition-colors"
-                      title="준비물 삭제"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {isItemEditing ? (
+                        <>
+                          <button
+                            onClick={() => saveEditing(item.id)}
+                            className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                            title="저장"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingItemId(null)}
+                            className="p-1 text-slate-400 hover:bg-slate-100 rounded transition-colors"
+                            title="취소"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEditing(item)}
+                            className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded transition-colors"
+                            title="준비물 수정"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            id={`btn-delete-chk-${item.id}`}
+                            onClick={() => onDeleteCheckItem(item.id)}
+                            className="p-1 text-slate-300 hover:text-rose-500 rounded transition-colors"
+                            title="준비물 삭제"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               })

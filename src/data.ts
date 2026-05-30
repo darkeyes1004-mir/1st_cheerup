@@ -354,56 +354,401 @@ export const INITIAL_SONGS: Song[] = [
 ];
 
 export const INITIAL_GIGS: GigEvent[] = [
+  // === 2026년 실제 공연 일정 ===
   {
-    id: 'g-2025-spring',
-    title: '2025 쳐럽밴드 봄 정기공연',
-    date: '2025-04-26',
-    time: '18:00',
-    location: '지하 연습 실 라이브 소극장',
-    description: '어두운 분위기를 날리는 봄맞이 정기 합동 콘서트.',
+    id: 'g-2026-01',
+    title: '여성일자리 박람회',
+    date: '2026-05-20',
+    time: '13:30',
+    location: '흥국체육관',
+    description: '여성일자리 박람회 축하공연',
     status: 'COMPLETED',
-    setlistSongIds: ['s-m13', 's-f16', 's-f2', 's-d1', 's-m3']
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m3'] // 5곡 선택됨 (나는 반딧불, 나성에 가면, 장미, 마이썬, 고백)
   },
   {
-    id: 'g-2025-summer',
-    title: '2025 한여름 밤의 버스킹',
-    date: '2025-08-15',
+    id: 'g-2026-02',
+    title: '낭만버스킹',
+    date: '2026-05-15',
     time: '19:30',
-    location: '한강시민공원 수변무대',
-    description: '한강 바람과 함께하는 어쿠스틱/락 야외 버스킹.',
+    location: '해양공원 밤빛누리',
+    description: '여수밤바다 낭만버스킹',
     status: 'COMPLETED',
-    setlistSongIds: ['s-m2', 's-f5', 's-f9', 's-d2', 's-m10']
+    setlistSongIds: [
+      's-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-d4', 's-m7', 's-f10', 's-m4',
+      's-m1', 's-f1', 's-d2', 's-f8', 's-m13', 's-f16', 's-m2', 's-f5'
+    ] // 18곡 선택됨
   },
   {
-    id: 'g-2025-winter',
-    title: '2025 연말 카운트다운 록 페스티벌',
-    date: '2025-12-31',
-    time: '21:00',
-    location: '신촌 록 인디 홀',
-    description: '새해를 맞이하는 락 페스티벌 합동 라이브 파티.',
+    id: 'g-2026-03',
+    title: '여수거북선축제',
+    date: '2026-05-03',
+    time: '14:30',
+    location: '이순신광장 주무대',
+    description: '여수거북선축제',
     status: 'COMPLETED',
-    setlistSongIds: ['s-m10', 's-f6', 's-d4', 's-m7', 's-f16']
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9'] // 5곡 선택됨
   },
   {
-    id: 'g-2026-upcoming',
-    title: '2026 쳐럽밴드 단독 하반기 콘서트',
-    date: '2026-06-20',
-    time: '17:00',
-    location: '마포 아트센터 소극장',
-    description: '2026년도 첫 대규모 전체 단독 콘서트 예정. 게스트 모집 예정.',
-    status: 'UPCOMING',
-    setlistSongIds: ['s-m8', 's-f11', 's-f14', 's-d2', 's-m13', 's-f16']
+    id: 'g-2026-04',
+    title: '국동 프리마켓',
+    date: '2026-04-18',
+    time: '16:30',
+    location: '국동 자치센터 근처',
+    description: '국동지구도시재생 문화사업단 프리마켓',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3'] // 6곡 선택됨
+  },
+
+  // === 2025년 실제 공연 일정 ===
+  {
+    id: 'g-2025-01',
+    title: '대안시민회 송년회',
+    date: '2025-11-29',
+    time: '17:30',
+    location: '디오션 콘도밸라스타홀 3층',
+    description: '여수 대안시민회 송년의 밤',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-d4'] // 5곡 선택됨
   },
   {
-    id: 'g-2026-indie',
-    title: '홍대 인디밴드 페스티벌 참가',
-    date: '2026-07-11',
-    time: '15:00',
-    location: '홍대 걷고싶은거리 광장 3',
-    description: '오오티디: 데님 앤 화이트. 타임테이블 3번째 순서.',
-    status: 'UPCOMING',
-    setlistSongIds: ['s-m13', 's-f16', 's-d2']
-  }
+    id: 'g-2025-02',
+    title: '월호동 한마음 축제',
+    date: '2025-11-14',
+    time: '16:40',
+    location: '월호동주민자치센터 다목적실',
+    description: '월호동 주민총회 및 월호동 한마음 축제',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-d4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-03',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-10-25',
+    time: '20:35',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-04',
+    title: '한려동 한마음 축제',
+    date: '2025-10-24',
+    time: '16:30',
+    location: '여수시 한려동 공화남1길 대진마트 앞 사거리',
+    description: '한려동 주민총회 및 한려동 한마음 축제',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m13', 's-m14', 's-f9', 's-f4', 's-m6', 's-m7'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-05',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-10-24',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-d4'] // 7곡 선택됨
+  },
+  {
+    id: 'g-2025-06',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-10-18',
+    time: '20:59',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-m7', 's-f10', 's-m4'] // 5곡 선택됨
+  },
+  {
+    id: 'g-2025-07',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-10-11',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-d4', 's-m7', 's-f10'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-08',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-10-10',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-m4'] // 7곡 선택됨
+  },
+  {
+    id: 'g-2025-09',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-09-27',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-d4', 's-f10'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-10',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-09-26',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-m7', 's-f10', 's-m4'] // 5곡 선택됨
+  },
+  {
+    id: 'g-2025-11',
+    title: '외국인 및 다문화가족 한마당',
+    date: '2025-09-14',
+    time: '11:30',
+    location: '여수엑스포 컨벤션센터',
+    description: '외국인 및 다문화가족 한마당',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-12',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-09-13',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-d4', 's-m7', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-13',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-09-12',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-d4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-14',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-09-06',
+    time: '20:45',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m3', 's-f10'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-15',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-08-30',
+    time: '20:42',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m7', 's-f10', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-16',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-08-29',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-m4'] // 7곡 선택됨
+  },
+  {
+    id: 'g-2025-17',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-08-23',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-d4', 's-m7', 's-f10'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-18',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-08-22',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-m9', 's-m3'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-19',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-07-19',
+    time: '20:35',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m6', 's-d4', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-20',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-07-18',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m7', 's-f10', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-21',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-07-11',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f4', 's-m6', 's-m9', 's-m3', 's-f10'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-22',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-07-05',
+    time: '20:40',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-m9', 's-m3', 's-d4', 's-m7', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-23',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-07-04',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-m6', 's-m9', 's-d4', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-24',
+    title: '청춘 버스킹',
+    date: '2025-06-28',
+    time: '16:40',
+    location: '여수 엑스포역 앞',
+    description: '여수 옥수수 축제',
+    status: 'COMPLETED',
+    setlistSongIds: [
+      's-m14', 's-f9', 's-f4', 's-m6', 's-m9',
+      's-m3', 's-d4', 's-m7', 's-f10', 's-m4'
+    ] // 10곡 선택됨
+  },
+  {
+    id: 'g-2025-25',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-06-27',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: [
+      's-m14', 's-f9', 's-f4', 's-m6', 's-m9',
+      's-m3', 's-d4', 's-m7', 's-f10'
+    ] // 9곡 선택됨
+  },
+  {
+    id: 'g-2025-26',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-06-20',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-m6', 's-d4', 's-f10', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-27',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-06-13',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f4', 's-m9', 's-m7', 's-f10', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-28',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-06-06',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m3', 's-d4', 's-m7'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-29',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-05-31',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f4', 's-m6', 's-m9', 's-m3', 's-d4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-30',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-05-30',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-m6', 's-m7', 's-f10', 's-m4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-31',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-05-10',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-m14', 's-f9', 's-f4', 's-m9', 's-m3', 's-d4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-32',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-05-09',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-f9', 's-f4', 's-m6', 's-m9', 's-d4'] // 5곡 선택됨
+  },
+  {
+    id: 'g-2025-33',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-05-02',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-d4'] // 6곡 선택됨
+  },
+  {
+    id: 'g-2025-34',
+    title: '2025 시간을 달리는 버스커',
+    date: '2025-04-26',
+    time: '20:30',
+    location: '여수 낭만버스',
+    description: '관객과 함께하는 무대',
+    status: 'COMPLETED',
+    setlistSongIds: ['s-f9', 's-f4', 's-m6', 's-m9', 's-m3', 's-d4', 's-m7'] // 7곡 선택됨
+  },
+
+  // === 예정된 미래의 대규모 일정 ===
+
 ];
 
 export const INITIAL_CHECKLISTS: ChecklistItem[] = [

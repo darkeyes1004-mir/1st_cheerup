@@ -51,6 +51,8 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
   const [newYoutubeUrl, setNewYoutubeUrl] = useState('');
   const [newTempo, setNewTempo] = useState('Medium');
   const [newMemo, setNewMemo] = useState('');
+  const [newAttachmentName, setNewAttachmentName] = useState('');
+  const [newAttachmentUrl, setNewAttachmentUrl] = useState('');
 
   // Editing song state
   const [editingSongId, setEditingSongId] = useState<string | null>(null);
@@ -60,6 +62,8 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
   const [editYoutubeUrl, setEditYoutubeUrl] = useState('');
   const [editTempo, setEditTempo] = useState('Medium');
   const [editMemo, setEditMemo] = useState('');
+  const [editAttachmentName, setEditAttachmentName] = useState('');
+  const [editAttachmentUrl, setEditAttachmentUrl] = useState('');
 
   const handleCreateSong = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +75,9 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
       category: newCategory,
       youtubeUrl: newYoutubeUrl.trim(),
       tempo: newTempo,
-      memo: newMemo.trim()
+      memo: newMemo.trim(),
+      attachmentName: newAttachmentName.trim() || undefined,
+      attachmentUrl: newAttachmentUrl.trim() || undefined
     });
 
     // Reset Form
@@ -81,6 +87,8 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
     setNewYoutubeUrl('');
     setNewTempo('Medium');
     setNewMemo('');
+    setNewAttachmentName('');
+    setNewAttachmentUrl('');
     setIsAddOpen(false);
   };
 
@@ -92,6 +100,8 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
     setEditYoutubeUrl(song.youtubeUrl);
     setEditTempo(song.tempo || 'Medium');
     setEditMemo(song.memo || '');
+    setEditAttachmentName(song.attachmentName || '');
+    setEditAttachmentUrl(song.attachmentUrl || '');
   };
 
   const handleSaveEdit = (id: string) => {
@@ -101,7 +111,9 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
       category: editCategory,
       youtubeUrl: editYoutubeUrl,
       tempo: editTempo,
-      memo: editMemo
+      memo: editMemo,
+      attachmentName: editAttachmentName.trim() || undefined,
+      attachmentUrl: editAttachmentUrl.trim() || undefined
     });
     setEditingSongId(null);
   };
@@ -273,6 +285,31 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
             />
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200/50 pt-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">첨부 파일명 (수정 가능)</label>
+              <input
+                id="song-input-attachment-name"
+                type="text"
+                placeholder="예: 쳐럽밴드_그날들_보컬악보.pdf"
+                value={newAttachmentName}
+                onChange={(e) => setNewAttachmentName(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">첨부 파일/악보 링크</label>
+              <input
+                id="song-input-attachment-url"
+                type="text"
+                placeholder="예: https://drive.google.com/..."
+                value={newAttachmentUrl}
+                onChange={(e) => setNewAttachmentUrl(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
@@ -386,6 +423,22 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
                       rows={2}
                       className="w-full px-2.5 py-1.5 border border-slate-200 rounded text-xs focus:outline-none resize-none"
                     />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={editAttachmentName}
+                        onChange={(e) => setEditAttachmentName(e.target.value)}
+                        placeholder="첨부 파일명 (수정 가능)"
+                        className="px-2.5 py-1.5 border border-slate-200 rounded text-[11px] focus:outline-none focus:border-amber-500"
+                      />
+                      <input
+                        type="text"
+                        value={editAttachmentUrl}
+                        onChange={(e) => setEditAttachmentUrl(e.target.value)}
+                        placeholder="첨부 파일 링크"
+                        className="px-2.5 py-1.5 border border-slate-200 rounded text-[11px] focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
                     <div className="flex gap-2 justify-end pt-1">
                       <button
                         onClick={() => setEditingSongId(null)}
@@ -421,6 +474,26 @@ export default function SongList({ songs, onAddSong, onDeleteSong, onEditSong, o
                         <p className="bg-slate-50 text-[11px] text-slate-600 px-3 py-2 rounded-lg border border-slate-100 leading-relaxed font-sans">
                           {song.memo}
                         </p>
+                      )}
+
+                      {song.attachmentName && (
+                        <div className="flex items-center justify-between bg-teal-50/50 border border-teal-100 p-2.5 rounded-xl text-xs gap-2">
+                          <span className="text-teal-800 font-semibold truncate flex-1 block" title={song.attachmentName}>
+                            📂 {song.attachmentName}
+                          </span>
+                          {song.attachmentUrl ? (
+                            <a
+                              href={song.attachmentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[10px] bg-teal-100 hover:bg-teal-200 text-teal-800 px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                            >
+                              파일 열기 <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-medium shrink-0">워크스루 파일</span>
+                          )}
+                        </div>
                       )}
 
                       <div className="flex items-center gap-2">

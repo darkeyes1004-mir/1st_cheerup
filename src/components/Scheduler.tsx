@@ -20,7 +20,9 @@ export default function Scheduler({ gigs, songs, onAddGig, onDeleteGig, onUpdate
   const availableYears = React.useMemo(() => {
     const list = gigs.map(g => {
       if (!g.date) return '';
-      return g.date.split('-')[0];
+      // Support YYYY-MM-DD, YYYY.MM.DD, YYYY/MM/DD, etc. to prevent failure
+      const match = g.date.match(/^(\d{4})/);
+      return match ? match[1] : '';
     }).filter(Boolean);
     const unique = Array.from(new Set(list));
     return unique.sort((a, b) => b.localeCompare(a)); // descending
@@ -75,7 +77,7 @@ export default function Scheduler({ gigs, songs, onAddGig, onDeleteGig, onUpdate
   const calculateDDay = (dateStr: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const gigDate = new Date(dateStr);
+    const gigDate = new Date(dateStr.replace(/-/g, '/'));
     gigDate.setHours(0, 0, 0, 0);
 
     const diffTime = gigDate.getTime() - today.getTime();
@@ -334,7 +336,7 @@ export default function Scheduler({ gigs, songs, onAddGig, onDeleteGig, onUpdate
           ) : (
             filteredGigs
               .slice()
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // sort by date descending
+              .sort((a, b) => new Date(b.date.replace(/-/g, '/')).getTime() - new Date(a.date.replace(/-/g, '/')).getTime()) // sort by date descending
               .map(gig => {
                 const isSelected = selectedGigId === gig.id;
                 const isEditing = editingGigId === gig.id;

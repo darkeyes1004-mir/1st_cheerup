@@ -71,10 +71,43 @@ export default function App() {
   const [isEditingNotices, setIsEditingNotices] = useState(false);
   const [editingNoticesTemp, setEditingNoticesTemp] = useState<NoticeItem[]>([]);
 
+  const [members, setMembers] = useState(() => {
+    const saved = localStorage.getItem('cheerup_members_v1');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return [
+      { role: '보컬', name: '이승현' },
+      { role: '보컬', name: '김하라' },
+      { role: '기타', name: '김덕홍' },
+      { role: '신디', name: '이소정' },
+      { role: '카혼', name: '신을식' }
+    ];
+  });
+  const [isEditingMembers, setIsEditingMembers] = useState(false);
+  const [tempMembers, setTempMembers] = useState<{role: string; name: string}[]>([]);
+
   const [gigs, setGigs] = useState<GigEvent[]>(() => {
     const saved = localStorage.getItem('cheerup_gigs_v2');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // 스마트 병합: INITIAL_GIGS 소스코드의 공식 일정 중 로컬스토리지에 누락된 id를 식별하여 주입합니다.
+          const parsedIds = new Set(parsed.map((g: any) => g.id));
+          const missingGigs = INITIAL_GIGS.filter(g => !parsedIds.has(g.id));
+          if (missingGigs.length > 0) {
+            const merged = [...parsed, ...missingGigs];
+            // 날짜 최신순 정렬
+            merged.sort((a, b) => b.date.localeCompare(a.date));
+            localStorage.setItem('cheerup_gigs_v2', JSON.stringify(merged));
+            return merged;
+          }
+          return parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
     return INITIAL_GIGS;
   });
@@ -105,6 +138,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('cheerup_notices_v1', JSON.stringify(notices));
   }, [notices]);
+
+  useEffect(() => {
+    localStorage.setItem('cheerup_members_v1', JSON.stringify(members));
+  }, [members]);
 
   const handleResetSongs = () => {
     // Overwrite with original 34 songs
@@ -178,20 +215,24 @@ export default function App() {
     setChecklists(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleEditCheckItem = (id: string, updatedFields: Partial<ChecklistItem>) => {
+    setChecklists(prev => prev.map(item => item.id === id ? { ...item, ...updatedFields } : item));
+  };
+
 
   // 6. DASHBOARD STATISTICS CALCULATOR HELPERS
   const upcomingGig = useMemo(() => {
     const sortedUpcoming = gigs
-      .filter(g => g.status === 'UPCOMING')
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .filter(g => g.status === 'UPCOMING' && g.date)
+      .sort((a, b) => new Date(a.date.replace(/-/g, '/')).getTime() - new Date(b.date.replace(/-/g, '/')).getTime());
     return sortedUpcoming.length > 0 ? sortedUpcoming[0] : null;
   }, [gigs]);
 
   const nearestDDay = useMemo(() => {
-    if (!upcomingGig) return null;
+    if (!upcomingGig || !upcomingGig.date) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const gigDate = new Date(upcomingGig.date);
+    const gigDate = new Date(upcomingGig.date.replace(/-/g, '/'));
     gigDate.setHours(0, 0, 0, 0);
 
     const diffTime = gigDate.getTime() - today.getTime();
@@ -203,76 +244,69 @@ export default function App() {
   }, [upcomingGig]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans pb-16">
-      {/* GLOBAL HEADER BAR */}
-      <header id="global-header" className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans pb-16 flex flex-col justify-between relative">
+      
+      {/* RESPONSIVE HEADER */}
+      <header id="global-header" className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 shadow-sm px-4 sm:px-6 lg:px-8 py-3.5">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
           {/* Logo Brand heading */}
-          <div className="flex items-center gap-2.5 text-left">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-black text-lg">
+          <div className="flex items-center gap-2.5 text-left w-full sm:w-auto">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-black text-lg shrink-0">
               🎸
             </div>
             <div>
               <h1 className="font-extrabold text-slate-950 text-base md:text-lg tracking-tight flex items-center gap-1.5">
                 쳐럽밴드 매니저
-                <span className="text-xs font-semibold px-2 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-md">
-                  Cheer Up Band
+                <span className="text-[11px] font-bold px-1.5 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-md">
+                  Cheer Up
                 </span>
               </h1>
-              <p className="text-[10px] text-slate-500 font-medium">공연 곡·일정·수준 높은 락밴드 세트리스트 조율 시스템</p>
+              <p className="text-[10px] text-slate-500 font-medium">여수 직밴 라이브 조율 시스템</p>
             </div>
           </div>
 
-          {/* D-Day Counter quick helper (Header integrated) */}
+          {/* Top Navigation for Desktop/Tablet Screens */}
+          <div className="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            {[
+              { id: 'DASHBOARD', label: '홈', icon: Sparkles },
+              { id: 'SONGS', label: '곡목록', icon: Music },
+              { id: 'SCHEDULER', label: '공연일정', icon: Calendar },
+              { id: 'CHECKLIST', label: '준비물', icon: ClipboardCheck },
+              { id: 'STATS', label: '통계', icon: BarChart3 }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-white text-amber-600 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* D-Day Counter quick helper (Header integrated) as a compact badge */}
           {upcomingGig && nearestDDay && (
-            <div className="hidden sm:flex items-center bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-1.5 gap-2 text-left animate-pulse">
+            <div className="flex items-center bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5 gap-1.5 animate-pulse shrink-0 self-end sm:self-auto">
               <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <div className="text-xs">
-                <span className="font-semibold text-slate-600">가장 가까운 행사:</span>{' '}
-                <strong className="text-slate-900">{upcomingGig.title}</strong>{' '}
-                <span className="font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded ml-1">
-                  {nearestDDay}
-                </span>
-              </div>
+              <span className="text-xs font-black text-amber-700">
+                {upcomingGig.title} ({nearestDDay})
+              </span>
             </div>
           )}
         </div>
       </header>
 
-      {/* PRIMARY NAVIGATION TABS */}
-      <nav id="workspace-primary-nav" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="flex space-x-1.5 bg-slate-200/60 p-1 rounded-2xl overflow-x-auto scrollbar-none shadow-inner">
-          {[
-            { id: 'DASHBOARD', label: '대시보드', icon: Sparkles },
-            { id: 'SONGS', label: '보컬별 곡 목록', icon: Music },
-            { id: 'SCHEDULER', label: '공연 일정 & 선곡', icon: Calendar },
-            { id: 'CHECKLIST', label: '공연 준비물', icon: ClipboardCheck },
-            { id: 'STATS', label: '선곡 통계', icon: BarChart3 }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                id={`nav-tab-${tab.id.toLowerCase()}`}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-amber-600 shadow-sm'
-                    : 'text-slate-600 hover:bg-white/40 hover:text-slate-900'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-amber-500' : 'text-slate-400'}`} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* CORE WORKSPACE CONTENT AREA */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      {/* CORE WORKSPACE CONTENT AREA WITH THUMB-REACHABLE NAVIGATION BAR */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
         
         {/* TAB 1: DASHBOARD OVERVIEW */}
         {activeTab === 'DASHBOARD' && (
@@ -311,23 +345,83 @@ export default function App() {
                   </div>
 
                   {/* Members badges grid matching Image 2 perfectly */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {[
-                      { role: '보컬', name: '이승현' },
-                      { role: '보컬', name: '김하라' },
-                      { role: '기타', name: '김덕홍' },
-                      { role: '신디', name: '이소정' },
-                      { role: '카혼', name: '신을식' }
-                    ].map((m, idx) => (
-                      <div key={idx} className="flex items-center shadow-md shrink-0">
-                        <span className="bg-[#d91f34] text-white text-[10px] font-bold px-1.5 py-1 rounded-l border-y border-l border-[#d91f34]">
-                          {m.role}
-                        </span>
-                        <span className="bg-white text-slate-800 font-extrabold text-[10px] px-2 py-1 rounded-r border-y border-r border-slate-200">
-                          {m.name}
-                        </span>
+                  <div className="flex items-center gap-2 mt-4 flex-wrap">
+                    {isEditingMembers ? (
+                      <div className="w-full bg-black/40 border border-white/10 p-3 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-amber-500 font-bold text-[10px]">멤버명 & 파트 편집</span>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => {
+                                setMembers(tempMembers);
+                                setIsEditingMembers(false);
+                              }}
+                              className="text-[9px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2 py-0.5 rounded cursor-pointer"
+                            >
+                              저장
+                            </button>
+                            <button
+                              onClick={() => setIsEditingMembers(false)}
+                              className="text-[9px] bg-slate-700 hover:bg-slate-600 text-white px-2 py-0.5 rounded cursor-pointer"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                          {tempMembers.map((m, idx) => (
+                            <div key={idx} className="flex gap-1 items-center">
+                              <input
+                                type="text"
+                                value={m.role}
+                                onChange={(e) => {
+                                  const updated = [...tempMembers];
+                                  updated[idx].role = e.target.value;
+                                  setTempMembers(updated);
+                                }}
+                                className="bg-slate-900 border border-slate-700 text-white px-1.5 py-0.5 rounded text-[10px] w-12 font-bold focus:outline-none"
+                                placeholder="파트"
+                              />
+                              <input
+                                type="text"
+                                value={m.name}
+                                onChange={(e) => {
+                                  const updated = [...tempMembers];
+                                  updated[idx].name = e.target.value;
+                                  setTempMembers(updated);
+                                }}
+                                className="bg-slate-900 border border-slate-700 text-white px-1.5 py-0.5 rounded text-[10px] flex-1 font-bold focus:outline-none"
+                                placeholder="이름"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    ) : (
+                      <>
+                        {members.map((m, idx) => (
+                          <div key={idx} className="flex items-center shadow-md shrink-0">
+                            <span className="bg-[#d91f34] text-white text-[10px] font-bold px-1.5 py-1 rounded-l border-y border-l border-[#d91f34]">
+                              {m.role}
+                            </span>
+                            <span className="bg-white text-slate-800 font-extrabold text-[10px] px-2 py-1 rounded-r border-y border-r border-slate-200">
+                              {m.name}
+                            </span>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => {
+                            setTempMembers(JSON.parse(JSON.stringify(members)));
+                            setIsEditingMembers(true);
+                          }}
+                          className="p-1 px-2 border border-white/20 hover:border-white/30 text-[9px] text-white/70 hover:text-white rounded-lg transition-all flex items-center gap-1 cursor-pointer bg-white/5"
+                          title="밴드 멤버 수정"
+                        >
+                          <Edit className="w-2.5 h-2.5 text-amber-500" />
+                          <span>멤버 수정</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -742,6 +836,99 @@ export default function App() {
 
               </div>
             </div>
+
+            {/* DEVELOPER SOURCE-CODE SYNC TOOL */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-left mt-6 text-slate-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4 mb-4">
+                <div>
+                  <span className="text-[9px] font-black tracking-widest text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded uppercase font-mono">Developer Sync Support</span>
+                  <h3 className="font-extrabold text-white text-sm sm:text-base mt-1 flex items-center gap-2">
+                    🛠️ 미리보기(Preview) 일정 데이터 기증 & 복구 도구
+                  </h3>
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  브라우저 로컬 저장소와 소스 코드 동기화
+                </div>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <p className="text-slate-300 leading-relaxed">
+                  <strong>안내사항:</strong> 회원님께서 '미리보기(Preview)' 화면에서 직접 클릭하여 등록하신 2025~2026년 공연 일정들은 회원님의 컴퓨터 웹브라우저 로컬 저장소(<code className="bg-slate-800 text-amber-300 px-1 rounded">Local Storage</code>)에 보관됩니다.
+                  AI 코딩 에이전트는 프라이버시 및 보안 격리상, 네트워킹을 통해 직접 브라우저 로컬 저장소 속 데이터를 엿볼 수 없습니다.
+                </p>
+                <p className="text-slate-300 leading-relaxed">
+                  따라서, 아래 텍스트 창에 채워진 <strong>현재 로컬 스퀘어 스케줄 JSON 데이터</strong>를 복사한 뒤, 
+                  <strong className="text-amber-400"> 대화 창(AI 채팅방)으로 그대로 붙여넣어(Ctrl+V) 전송</strong>해 주시면 즉시 분석하여 <code className="bg-slate-800 text-amber-300 px-1 rounded">src/data.ts</code>의 영구 초기값으로 완벽하게 심어 드리겠습니다! 더불어 수동으로 데이터를 임포트하고 싶으시면 우측 하단에 붙여넣고 동기화를 누르실 수도 있습니다.
+                </p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                  {/* Export Section */}
+                  <div className="space-y-2 bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-200">1. 내 브라우저에서 추출된 JSON 코드</span>
+                      <button
+                        onClick={() => {
+                          const str = JSON.stringify(gigs, null, 2);
+                          navigator.clipboard.writeText(str);
+                          alert('JSON 코드가 성공적으로 클립보드에 복사되었습니다! 이제 대화 창에 전송해 주세요 🚀');
+                        }}
+                        className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold rounded-lg text-[10px] transition cursor-pointer"
+                      >
+                        클립보드 복사하기 📋
+                      </button>
+                    </div>
+                    <textarea
+                      readOnly
+                      value={JSON.stringify(gigs, null, 2)}
+                      rows={6}
+                      className="w-full bg-slate-900 border border-slate-800 text-slate-300 rounded-xl p-3 font-mono text-[9px] focus:outline-none focus:border-amber-500/50"
+                    />
+                    <p className="text-[10px] text-slate-400 italic">※ 추가하신 스케줄을 포함하여 현재 저장되어 있는 순수 일정 데이터 묶음입니다.</p>
+                  </div>
+
+                  {/* Import Section */}
+                  <div className="space-y-2 bg-slate-950/80 border border-slate-800 p-4 rounded-2xl">
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const target = (e.target as any).json_data.value.trim();
+                      if (!target) return;
+                      try {
+                        const parsed = JSON.parse(target);
+                        if (Array.isArray(parsed)) {
+                          setGigs(parsed);
+                          localStorage.setItem('cheerup_gigs_v2', JSON.stringify(parsed));
+                          alert('축하합니다! 입력하신 JSON 일정 데이터가 현재 브라우저 상태에 실시간 주입 및 저장되었습니다. 🌟');
+                        } else {
+                          alert('JSON 형식이 올바르지 않습니다. 반드시 배열형식( [ ... ] )이어야 합니다.');
+                        }
+                      } catch (err) {
+                        alert('JSON 파싱 에러: ' + (err as any).message);
+                      }
+                    }} className="space-y-2">
+                      <div className="flex justify-between items-center bg-transparent border-0 p-0 shadow-none m-0">
+                        <span className="font-bold text-slate-200">2. 코드 수동 강제 주입하기 (임포트)</span>
+                        <button
+                          type="submit"
+                          className="px-2.5 py-1 bg-[#d91f34] hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-lg text-[10px] transition cursor-pointer"
+                        >
+                          상태 강제 주입하기 ⚡
+                        </button>
+                      </div>
+                      <textarea
+                        name="json_data"
+                        placeholder="[ { id: '...', title: '...', date: '2025-06-15', ... } ] 등 주입할 JSON 배열 데이터를 붙여넣으세요..."
+                        rows={6}
+                        className="w-full bg-slate-900 border border-slate-800 text-slate-300 rounded-xl p-3 font-mono text-[9px] focus:outline-none focus:border-red-500/50"
+                      />
+                      <p className="text-[10px] text-slate-400 italic">※ 타 장치나 타인에게 전달받은 기획 스케줄 덩어리를 즉시 이 브라우저에 임포트합니다.</p>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 
@@ -804,6 +991,7 @@ export default function App() {
               onAddCheckItem={handleAddCheckItem}
               onToggleCheckItem={handleToggleCheckItem}
               onDeleteCheckItem={handleDeleteCheckItem}
+              onEditCheckItem={handleEditCheckItem}
             />
           </div>
         )}
@@ -827,6 +1015,43 @@ export default function App() {
         )}
 
       </main>
+
+      {/* MOBILE STICKY BOTTOM TAB NAVIGATION */}
+      <nav id="workspace-primary-nav" className="md:hidden sticky bottom-0 bg-white/95 backdrop-blur-md border-t border-slate-200/85 shadow-[0_-5px_20px_rgba(0,0,0,0.06)] z-50 rounded-t-2xl flex justify-around items-center py-2 px-1">
+        {[
+          { id: 'DASHBOARD', label: '홈', icon: Sparkles },
+          { id: 'SONGS', label: '곡목록', icon: Music },
+          { id: 'SCHEDULER', label: '공연일정', icon: Calendar },
+          { id: 'CHECKLIST', label: '준비물', icon: ClipboardCheck },
+          { id: 'STATS', label: '통계', icon: BarChart3 }
+        ].map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`nav-tab-${tab.id.toLowerCase()}`}
+              onClick={() => setActiveTab(tab.id as any)}
+              className="flex flex-col items-center justify-center flex-1 py-1 transition-all text-center cursor-pointer relative"
+            >
+              <div className={`p-1 rounded-xl transition-all duration-300 ${
+                isActive ? 'bg-amber-500/10 text-amber-600 scale-110' : 'text-slate-400 hover:text-slate-600'
+              }`}>
+                <Icon className="w-4.5 h-4.5" />
+              </div>
+              <span className={`text-[9px] font-bold mt-0.5 transition-all ${
+                isActive ? 'text-amber-600 font-extrabold' : 'text-slate-500'
+              }`}>
+                {tab.label}
+              </span>
+              {isActive && (
+                <span className="absolute bottom-0 w-1 h-1 bg-amber-500 rounded-full animate-pulse" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
     </div>
   );
 }

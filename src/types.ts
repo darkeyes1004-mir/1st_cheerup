@@ -14,6 +14,8 @@ export interface Song {
   tempo?: string; // fast, medium, slow
   memo?: string;
   createdAt: string;
+  attachmentName?: string; // Optional attachment name (e.g. "Grandal_Sheet_Gkey.pdf")
+  attachmentUrl?: string;  // Optional attachment link/URL details
 }
 
 export interface GigEvent {
