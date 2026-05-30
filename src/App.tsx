@@ -28,8 +28,27 @@ import {
   TrendingUp,
   Award,
   Mic,
-  Guitar
+  Guitar,
+  Edit,
+  Trash2,
+  Plus,
+  Save,
+  X,
+  RotateCcw
 } from 'lucide-react';
+
+interface NoticeItem {
+  idx: string;
+  title: string;
+  detail: string;
+}
+
+const DEFAULT_NOTICES: NoticeItem[] = [
+  { idx: '1', title: '개인 연습의 중요성', detail: '합주 전까지 배포용 코드를 기반으로 최소 3회 가량 가사 및 기타 악보 완벽 숙지.' },
+  { idx: '2', title: '합주 지각 회비', detail: '합주 당일 약속 시각 시간 10분 초과당 누적 1,000원 벌금! (지각비는 반기 밴드 회식비로 직행)' },
+  { idx: '3', title: '장비 및 소모품 챙기기', detail: '모든 보컬용 무선 인이어 인서트, 일렉 기타 케이블 젠더 및 페달 파워 서플라이는 직전 체크리스트 필수 검사.' },
+  { idx: '4', title: '기본 에티켓 준수', detail: '피드백 시 예의바르게 웃으며 주고받기! 우리는 즐기기 위해 뭉친 Cheer-Up 밴드니까요 🌸' }
+];
 
 export default function App() {
   // 1. STATE INITIALIZATION (Local Storage hydrated or seeded with default initial data)
@@ -40,6 +59,17 @@ export default function App() {
     }
     return INITIAL_SONGS;
   });
+
+  const [notices, setNotices] = useState<NoticeItem[]>(() => {
+    const saved = localStorage.getItem('cheerup_notices_v1');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return DEFAULT_NOTICES;
+  });
+
+  const [isEditingNotices, setIsEditingNotices] = useState(false);
+  const [editingNoticesTemp, setEditingNoticesTemp] = useState<NoticeItem[]>([]);
 
   const [gigs, setGigs] = useState<GigEvent[]>(() => {
     const saved = localStorage.getItem('cheerup_gigs_v2');
@@ -71,6 +101,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('cheerup_checklists_v2', JSON.stringify(checklists));
   }, [checklists]);
+
+  useEffect(() => {
+    localStorage.setItem('cheerup_notices_v1', JSON.stringify(notices));
+  }, [notices]);
 
   const handleResetSongs = () => {
     // Overwrite with original 34 songs
@@ -176,92 +210,9 @@ export default function App() {
           
           {/* Logo Brand heading */}
           <div className="flex items-center gap-2.5 text-left">
-            <svg viewBox="0 0 100 100" className="w-11 h-11 shrink-0 drop-shadow-sm" aria-hidden="true">
-              <defs>
-                <path id="logo-text-path" d="M 18,74 A 40,40 0 0,0 82,74" />
-              </defs>
-
-              {/* Green outer ring matching user's original image */}
-              <circle cx="50" cy="50" r="48" fill="#3bb143" />
-              <circle cx="50" cy="50" r="43.5" fill="none" stroke="white" strokeWidth="1.2" />
-              <circle cx="50" cy="50" r="35" fill="white" />
-
-              {/* Hand icon pointing up in center top, tilted counter-clockwise */}
-              <g transform="translate(50, 22.5) rotate(-16) scale(0.95)">
-                {/* Complete hand outline with white fill and black outline */}
-                <path 
-                  d="M -3.2,-3 
-                     C -3.2,-14.5 0.5,-16.5 2,-14.5 
-                     C 3,-12.5 3,-3 3,-3 
-                     C 3,-3 6.2,-4 7.5,-2.2 
-                     C 8.8,-0.5 8.2,1.5 7.8,2.5
-                     C 7.2,3.5 9.5,3.8 9.5,5.8
-                     C 9.5,7.8 8,8.8 6.5,9
-                     C 5,9.2 -2.5,9.2 -4.5,7.8
-                     C -6.5,6.3 -8.2,2.8 -5.5,0.3
-                     C -4, -0.6 -3.2,-3 -3.2,-3 Z" 
-                  fill="white" 
-                  stroke="black" 
-                  strokeWidth="2.4" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                />
-                {/* Folded lines for finger separation */}
-                <path d="M 3,-3 Q 6,-3 7,-1.5" fill="none" stroke="black" strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M 2.5,1 Q 5.5,1 6.5,2.5" fill="none" stroke="black" strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M 1.8,5 Q 4.5,5 5.5,6.5" fill="none" stroke="black" strokeWidth="1.6" strokeLinecap="round" />
-              </g>
-
-              {/* Playful 'CHEER' title */}
-              <text 
-                x="50" 
-                y="48" 
-                textAnchor="middle" 
-                fontFamily="'Arial Black', 'Impact', 'Arial Rounded MT Bold', sans-serif" 
-                fontWeight="900" 
-                fontSize="18.5" 
-                letterSpacing="-0.03em" 
-                fill="black"
-              >
-                CHEER
-              </text>
-
-              {/* Playful lowercase 'up' label */}
-              <text 
-                x="57" 
-                y="71.5" 
-                fontFamily="'Arial Black', 'Impact', 'Arial Rounded MT Bold', sans-serif" 
-                fontWeight="900" 
-                fontSize="20.5" 
-                letterSpacing="-0.02em" 
-                fill="black"
-              >
-                up
-              </text>
-
-              {/* Dual eighth notes separately positioned on the left side of 'up' to match the image */}
-              <g transform="translate(30, 56) rotate(14) scale(0.9)" fill="black">
-                {/* Upper Right Note */}
-                <g transform="translate(9, -7)">
-                  <ellipse cx="4.5" cy="11.5" rx="3.5" ry="2.2" transform="rotate(-15 4.5 11.5)" />
-                  <rect x="6.8" y="2.5" width="1.4" height="9.2" />
-                  <path d="M8.2,2.5 Q11.2,3.2 10.2,7" stroke="black" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                </g>
-                {/* Lower Left Note */}
-                <g transform="translate(0, 3)">
-                  <ellipse cx="4.5" cy="11.5" rx="3.5" ry="2.2" transform="rotate(-15 4.5 11.5)" />
-                  <rect x="6.8" y="2.5" width="1.4" height="9.2" />
-                  <path d="M8.2,2.5 Q11.2,3.2 10.2,7" stroke="black" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                </g>
-              </g>
-
-              {/* Concentric curved bottom band title '쳐럽 밴드' */}
-              <text fontSize="7.2" fontFamily="system-ui, -apple-system, sans-serif" fontWeight="900" fill="white" letterSpacing="0.1em">
-                <textPath href="#logo-text-path" startOffset="50%" textAnchor="middle">
-                  쳐럽 밴드
-                </textPath>
-              </text>
-            </svg>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-black text-lg">
+              🎸
+            </div>
             <div>
               <h1 className="font-extrabold text-slate-950 text-base md:text-lg tracking-tight flex items-center gap-1.5">
                 쳐럽밴드 매니저
@@ -469,28 +420,169 @@ export default function App() {
               <div className="md:col-span-7 space-y-6">
                 {/* 1. Band Official Rules / Notices */}
                 <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm text-left">
-                  <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5 mb-3">
-                    <Megaphone className="w-4 h-4 text-amber-500" />
-                    쳐럽밴드 약속 및 회정식
-                  </h3>
-                  <div className="space-y-2.5">
-                    {[
-                      { idx: '1', title: '개인 연습의 중요성', detail: '합주 칠 전까지 배포용 코드를 기반으로 최소 3회 가량 가사 및 기타 악보 완벽 숙지.' },
-                      { idx: '2', title: '합주 지각 회비', detail: '합주 당일 약속 실각 시간 10분 초과당 누적 1,000원 벌금! (지각비는 반기 밴드 회식비로 직행)' },
-                      { idx: '3', title: '장비 및 소모품 챙기기', detail: '모든 보컬용 무선 인이어 인서트, 일렉 기타 케이블 젠더 및 페달 파워 서플라이는 직전 체크리스트 필수 검사.' },
-                      { idx: '4', title: '기본 에티켓 준수', detail: '피드백 시 예의바르게 웃으며 주고받기! 우리는 즐기기 위해 뭉친 Cheer-Up 밴드니까요 🌸' }
-                    ].map(notice => (
-                      <div key={notice.idx} className="flex gap-2.5 items-start bg-slate-50 border border-slate-100 p-3 rounded-xl">
-                        <span className="w-5 h-5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
-                          {notice.idx}
-                        </span>
-                        <div className="text-xs">
-                          <strong className="text-slate-800 block">{notice.title}</strong>
-                          <p className="text-slate-600 mt-0.5 leading-relaxed">{notice.detail}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">
+                      <Megaphone className="w-4 h-4 text-amber-500" />
+                      쳐럽밴드 약속 및 회정식
+                    </h3>
+                    {!isEditingNotices && (
+                      <button
+                        onClick={() => {
+                          setEditingNoticesTemp(JSON.parse(JSON.stringify(notices)));
+                          setIsEditingNotices(true);
+                        }}
+                        className="p-1 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold hover:text-slate-800 transition-colors inline-flex items-center gap-1"
+                        title="약속 편집"
+                      >
+                        <Edit className="w-3 h-3 text-slate-500" />
+                        수정하기
+                      </button>
+                    )}
                   </div>
+                  {isEditingNotices ? (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center mb-1 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100/60">
+                        <span className="text-[10px] font-bold text-amber-800">💡 약속 및 회정식 내용을 기입하고 설정을 저장해 주세요.</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('모든 약속을 기본값으로 복원하시겠습니까?')) {
+                              setEditingNoticesTemp(JSON.parse(JSON.stringify(DEFAULT_NOTICES)));
+                            }
+                          }}
+                          className="text-[10px] text-amber-600 font-bold hover:underline inline-flex items-center gap-1 active:scale-95 transition-transform"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          기본값 복원
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                        {editingNoticesTemp.map((notice, index) => (
+                          <div key={index} className="bg-slate-50 border border-slate-150 p-3.5 rounded-2xl space-y-2 relative group hover:border-amber-200 transition-colors">
+                            <div className="flex justify-between items-center gap-2">
+                              <div className="flex items-center gap-2 flex-grow">
+                                <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+                                  {index + 1}
+                                </span>
+                                <input
+                                  type="text"
+                                  value={notice.title}
+                                  onChange={(e) => {
+                                    const updated = [...editingNoticesTemp];
+                                    updated[index].title = e.target.value;
+                                    setEditingNoticesTemp(updated);
+                                  }}
+                                  className="w-full text-xs font-bold px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-amber-500 focus:outline-none focus:border-amber-500 shadow-sm transition"
+                                  placeholder="약속 제목 (예: 합주 지각비)"
+                                  required
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = editingNoticesTemp.filter((_, i) => i !== index);
+                                  setEditingNoticesTemp(updated);
+                                }}
+                                className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition active:scale-90"
+                                title="삭제"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            
+                            <textarea
+                              value={notice.detail}
+                              onChange={(e) => {
+                                const updated = [...editingNoticesTemp];
+                                updated[index].detail = e.target.value;
+                                setEditingNoticesTemp(updated);
+                              }}
+                              rows={2}
+                              className="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-amber-500 focus:outline-none focus:border-amber-500 font-sans shadow-sm transition leading-relaxed"
+                              placeholder="상세 규칙이나 운영 기준을 작성해 주세요."
+                              required
+                            />
+                          </div>
+                        ))}
+                        
+                        {editingNoticesTemp.length === 0 && (
+                          <div className="text-center py-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                            <p className="text-xs text-slate-400 italic">등록된 대원 약속 또는 규칙 지침이 존재하지 않습니다.</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingNoticesTemp([
+                            ...editingNoticesTemp,
+                            { idx: String(editingNoticesTemp.length + 1), title: '', detail: '' }
+                          ]);
+                        }}
+                        className="w-full py-2.5 bg-slate-50 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 border border-dashed border-slate-300 rounded-2xl text-xs font-bold text-slate-600 flex items-center justify-center gap-1.5 transition-all active:scale-[0.99]"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        새로운 약속/지침 추가
+                      </button>
+                      
+                      <div className="flex gap-2 pt-2 border-t border-slate-100 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Ensure beautiful sequentials index labels
+                            const finalized = editingNoticesTemp.map((notice, idx) => ({
+                              ...notice,
+                              idx: String(idx + 1)
+                            }));
+                            setNotices(finalized);
+                            setIsEditingNotices(false);
+                          }}
+                          className="flex-grow py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1 transition-colors shadow-sm shadow-amber-500/10"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          설정 저장
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingNotices(false)}
+                          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {notices.map(notice => (
+                        <div key={notice.idx} className="flex gap-2.5 items-start bg-slate-50/50 border border-slate-100 p-3.5 rounded-2xl hover:shadow-sm hover:border-slate-200 transition-all duration-200">
+                          <span className="w-5 h-5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+                            {notice.idx}
+                          </span>
+                          <div className="text-xs">
+                            <strong className="text-slate-800 block leading-tight">{notice.title || '(제목 없음)'}</strong>
+                            <p className="text-slate-600 mt-1 leading-relaxed whitespace-pre-line">{notice.detail || '(세부 항목이 비어있습니다)'}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {notices.length === 0 && (
+                        <div className="text-center py-8 border border-dashed border-slate-200 rounded-2xl">
+                          <p className="text-xs text-slate-400 italic">등록된 대원 및 회비 운영 약속이 없습니다.</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNoticesTemp([]);
+                              setIsEditingNotices(true);
+                            }}
+                            className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 hover:underline"
+                          >
+                            <Plus className="w-3 h-3" /> 첫 규칙 등록하기
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. Upcoming setlist preview */}
